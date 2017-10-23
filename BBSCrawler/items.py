@@ -21,3 +21,19 @@ class SectionItem(scrapy.Item):
     parent = scrapy.Field()
     sub_section = scrapy.Field()
     board = scrapy.Field()
+
+
+class ArticlesItem(scrapy.Item):
+    id = scrapy.Field()
+    tid = scrapy.Field()
+    theme = scrapy.Field()
+    author_id = scrapy.Field()
+    author_name = scrapy.Field()
+    content = scrapy.Field()
+    create_time = scrapy.Field()
+    board = scrapy.Field()
+    url = scrapy.Field()
+    ip = scrapy.Field()
+    ismain = scrapy.Field()
+    mid = scrapy.Field()
+    board_name_cn = scrapy.Field()
