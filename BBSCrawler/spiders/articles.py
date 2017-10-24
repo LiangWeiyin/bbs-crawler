@@ -18,16 +18,14 @@ class ArticlesSpider(scrapy.Spider):
 
     def start_requests(self):
         client = pymongo.MongoClient(self.settings["MONGO_URI"])
-        print(self.settings["MONGO_DATABASE"])
         sections = client[self.settings["MONGO_DATABASE"]]
         boards = sections["section"]
         for item in boards.find({}, {"board.name": 1}):
-            for i in item["board"][1:2]:
+            for i in item["board"]:
                 yield scrapy.Request("https://prod.niuap.com/cangjie/board/articles?boardName={}".format(i["name"]),
                                      meta={'board': i["name"]}, callback=self.parse)
 
     def parse(self, response):
-        print(response.body)
         dict_response = json.loads(response.body, encoding='utf-8')
         item = ArticlesItem()
 
