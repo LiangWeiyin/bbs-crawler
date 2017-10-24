@@ -37,3 +37,15 @@ class ArticlesItem(scrapy.Item):
     ismain = scrapy.Field()
     mid = scrapy.Field()
     board_name_cn = scrapy.Field()
+
+class ThreadsItem(scrapy.Item):
+    id = scrapy.Field()
+    group_id = scrapy.Field()
+    reply_id = scrapy.Field()
+    is_subject = scrapy.Field()
+    title = scrapy.Field()
+    user = scrapy.Field()
+    post_time = scrapy.Field()
+    board_name = scrapy.Field()
+    board_name_en = scrapy.Field()
+    content = scrapy.Field()

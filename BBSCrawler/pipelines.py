@@ -26,7 +26,7 @@ class DuplicatesPipeline(object):
                 self.section_names_seen.add(item["name"])
                 return item
 
-        if spider.name == "articles":
+        if spider.name in ["articles", "threads"]:
             if item["id"] in self.section_names_seen:
                 raise DropItem("Duplicate article, id:{}".format(item["id"]))
             else:
@@ -62,4 +62,9 @@ class MongoPipeline(object):
             return item
         elif spider.name == "articles":
             self.db["articles"].insert(dict(item))
+            return item
+        elif spider.name == "threads":
+            self.db["threads"].insert(dict(item))
+            return item
+        else:
             return item
