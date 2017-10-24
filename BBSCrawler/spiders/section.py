@@ -13,11 +13,12 @@ import json
 
 class SecitonSpider(scrapy.Spider):
     name = "section"
-    allowed_domains = ["prod.niuap.com"]
-    start_urls = ["https://prod.niuap.com/cangjie/board/section/{}.json".format(i) for i in range(10)]
+    allowed_domains = ["bbs.byr.cn"]
+    start_urls = "https://bbs.byr.cn/open/section/{section_id}.json?oauth_token={oauth_token}"
 
     def start_requests(self):
-        for u in self.start_urls:
+        for section_id in range(10):
+            u = self.start_urls.format(section_id=section_id, oauth_token=self.settings["OAUTH_TOKEN"])
             yield scrapy.Request(u, callback=self.parse, dont_filter=True)
 
     def parse(self, response):
@@ -31,7 +32,8 @@ class SecitonSpider(scrapy.Spider):
         item["board"] = dict_response["board"]
 
         if dict_response["sub_section"]:
-            subsection_urls = ["https://prod.niuap.com/cangjie/board/section/{}.json".format(sub_section)
+            subsection_urls = ["https://bbs.byr.cn/open/section/{section_id}.json?oauth_token={oauth_token}".format(
+                               section_id=sub_section, oauth_token=self.settings["OAUTH_TOKEN"])
                                for sub_section in item['sub_section']]
             for u in subsection_urls:
                 yield scrapy.Request(u, callback=self.parse, dont_filter=True)
