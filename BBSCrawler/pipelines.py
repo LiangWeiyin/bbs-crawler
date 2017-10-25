@@ -17,6 +17,8 @@ class BbscrawlerPipeline(object):
 class DuplicatesPipeline(object):
     def __init__(self):
         self.section_names_seen = set()
+        self.article_names_seen = set()
+        self.thread_names_seen = set()
 
     def process_item(self, item, spider):
         if spider.name == "section":
@@ -26,11 +28,20 @@ class DuplicatesPipeline(object):
                 self.section_names_seen.add(item["name"])
                 return item
 
-        if spider.name in ["articles", "threads"]:
-            if item["id"] in self.section_names_seen:
-                raise DropItem("Duplicate article, id:{}".format(item["id"]))
+        elif spider.name == "articles":
+            if item["board_name"]+str(item["id"]) in self.article_names_seen:
+                raise DropItem("Duplicate article, id:{id}, board:{board_name}".format(
+                    id=item["id"], board_name=item["board_name"]))
             else:
-                self.section_names_seen.add(item["id"])
+                self.article_names_seen.add(item["board_name"]+str(item["id"]))
+                return item
+
+        elif spider.name == "threads":
+            if item["board_name"]+str(item["id"]) in self.thread_names_seen:
+                raise DropItem("Duplicate thread, id:{id}, board:{board_name}".format(
+                    id=item["id"], board_name=item["board_name"]))
+            else:
+                self.thread_names_seen.add(item["board_name"]+str(item["id"]))
                 return item
 
         else:
