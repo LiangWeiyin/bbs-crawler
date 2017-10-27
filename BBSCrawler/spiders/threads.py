@@ -22,9 +22,9 @@ class ThreadsSpider(RedisCrawlSpider):
 
     def parse(self, response):
         dict_response = json.loads(response.body)
-        item = ThreadsItem()
         if dict_response["article"]:
             for thread in dict_response["article"]:
+                item = ThreadsItem()
                 item["id"] = thread["id"]
                 item["group_id"] = thread["group_id"]
                 item["reply_id"] = thread["reply_id"]
