@@ -9,25 +9,16 @@
 import scrapy
 from BBSCrawler.items import ThreadsItem
 import json
-from pymongo import MongoClient
+from scrapy_redis.spiders import RedisCrawlSpider
 
 
-class ThreadsSpider(scrapy.Spider):
+class ThreadsSpider(RedisCrawlSpider):
     name = "threads"
+    custom_settings = {
+        'DOWNLOAD_DELAY': 4,
+    }
     allowed_domains = ["bbs.byr.cn"]
-    start_urls = "https://bbs.byr.cn/open/threads/{board}/{article_id}.json?&oauth_token={oauth_token}&page={page_num}"
-
-    def start_requests(self):
-        client = MongoClient(self.settings["MONGO_HOST"], self.settings["MONGO_PORT"])
-        db = client[self.settings["MONGO_DATABASE"]]
-        db.authenticate(self.settings["MONGO_USER"], self.settings["MONGO_PASSWORD"])
-        articles = db["articles"]
-        for item in articles.find({}, {"board_name": 1, "id": 1}):
-            article_id = item["id"]
-            board_name = item["board_name"]
-            threads_url = self.start_urls.format(board=board_name, article_id=article_id,
-                                                 oauth_token=self.settings["OAUTH_TOKEN"], page_num=1)
-            yield scrapy.Request(threads_url, meta={"board_name": board_name, "article_id": article_id, "page_num": 1})
+    redis_key = 'threads:start_urls'
 
     def parse(self, response):
         dict_response = json.loads(response.body)
@@ -51,14 +42,16 @@ class ThreadsSpider(scrapy.Spider):
                 item["content"] = thread["content"]
                 item["attachment"] = thread["attachment"]
                 item["like_sum"] = thread["like_sum"]
+                self.logger.info("item:{}".format(thread["id"]))
                 yield item
 
         if dict_response["pagination"]["page_current_count"] < dict_response["pagination"]["page_all_count"]:
-            board_name = response.meta["board_name"]
-            article_id = response.meta["article_id"]
+            board_name = dict_response["board_name"]
+            article_id = dict_response["id"]
             page_num = dict_response["pagination"]["page_current_count"] + 1
-            threads_url = self.start_urls.format(board=board_name, article_id=article_id,
-                                                 oauth_token=self.settings["OAUTH_TOKEN"], page_num=page_num)
-            yield scrapy.Request(threads_url, meta={"board_name": board_name,
-                                                    "article_id": article_id,
-                                                    "page_num": page_num})
+            yield scrapy.Request("https://bbs.byr.cn/open/threads/{board}/{article_id}.json?"
+                                 "&oauth_token={oauth_token}&page={page_num}"
+                                 "".format(board=board_name,
+                                           article_id=article_id,
+                                           oauth_token=self.settings["OAUTH_TOKEN"],
+                                           page_num=page_num))
